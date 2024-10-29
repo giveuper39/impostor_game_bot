@@ -8,5 +8,13 @@ class BaseModel(peewee.Model):
         database = db
 
 
+class Theme(BaseModel):
+    name = peewee.CharField(unique=True)
+
 class Word(BaseModel):
-    word = peewee.CharField()
+    name = peewee.CharField(unique=True)
+    theme = peewee.ManyToManyField(Theme)
+
+
+WordThemeMiddle = Word.theme.get_through_model()
+

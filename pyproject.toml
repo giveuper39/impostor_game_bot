@@ -17,10 +17,11 @@ ruff = "^0.7.1"
 black = "^24.10.0"
 
 [tool.black]
-line-length = 150
+line-length = 120
 
 [tool.ruff.lint]
-select= ["ALL"]
+select = ["ALL"]
+ignore = ["D106"]
 
 [build-system]
 requires = ["poetry-core"]
