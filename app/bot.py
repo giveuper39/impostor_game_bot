@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
@@ -16,6 +17,8 @@ from aiogram.types import (
     Message,
     BotCommand,
 )
+from certifi.core import exit_cacert_ctx
+
 from db import init_db, load_data_from_file
 from dotenv import load_dotenv
 from game_functions import get_imposters, get_random_order, select_word_theme
@@ -154,7 +157,7 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
     word, theme = select_word_theme()
     data = (await state.get_data())["session_data"]
     players = data["players"]
-    imposters = get_imposters(list(players.keys()), data["imposter_num"])
+    imposters = get_imposters(list(players.keys()), data["imposter_num"]) # TODO: сделать рандомное количество
     order = get_random_order(list(players.keys()))
     data["imposters"] = imposters
     data["order"] = order
@@ -164,10 +167,13 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
     chat_id = data["chat_id"]
 
     for p_id in players:
-        if p_id not in imposters:
-            await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
-        else:
-            await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
+        try:
+            if p_id not in imposters:
+                await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
+            else:
+                await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
+        except TelegramForbiddenError:
+            await message.bot.send_message(message.chat.id, f"Игрок {players[p_id]} еблан.")
 
     await message.bot.send_message(
         chat_id,
@@ -192,7 +198,6 @@ async def association_round(message: Message, state: FSMContext, command: Comman
     player_num = data["player_num"]
     order = data["order"]
     players = data["players"]
-    print(order, current_player, players)
     if order[current_player] != message.from_user.id:
         await message.reply(f"Сейчас ход игрока: {players[order[current_player]]}")
         return
@@ -301,7 +306,6 @@ async def finish_game(message: Message, state: FSMContext) -> None:
     players = data["players"]
     max_voted = max(votes.values())
     max_voted_ids = [i for i in votes.keys() if votes[i] == max_voted]
-    print(max_voted_ids)
     if len(max_voted_ids) == 1:
         voted_id = max_voted_ids[0]
         await message.bot.send_message(
