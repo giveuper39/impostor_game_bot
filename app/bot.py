@@ -164,11 +164,10 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
     data["current_player"] = 0
     data["current_round"] = 1
     chat_id = data["chat_id"]
-
     for p_id in players:
         try:
             if imposters is not None and p_id in imposters:
-                    await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
+                await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
             else:
                 await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
         except TelegramForbiddenError:
