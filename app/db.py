@@ -27,7 +27,7 @@ def init_db():
 def load_data_from_file(file_path):
     if Word.select().count() != 0:
         return
-    with open(file_path, encoding="utf-8") as file:
+    with open(file_path, "r") as file:
         data = file.read()
 
     # Разбиваем строки по ";"
@@ -36,7 +36,6 @@ def load_data_from_file(file_path):
         if ":" in pair:
             word_name, theme_name = pair.split(":")
             word_name, theme_name = word_name.strip(), theme_name.strip()
-            print(word_name, theme_name)
 
             # Находим или создаём тему
             theme, created = Theme.get_or_create(name=theme_name)

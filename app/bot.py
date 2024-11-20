@@ -32,7 +32,6 @@ dp = Dispatcher(storage=MemoryStorage(), fsm_strategy=FSMStrategy.CHAT)
 router = Router()
 
 
-
 class States(StatesGroup):
     WaitingForPlayers = State()
     SendingWords = State()
@@ -67,7 +66,7 @@ async def start(message: Message, state: FSMContext) -> None:
         await message.bot.send_message(
             message.chat.id,
             f"Всем привет, друзья! Давайте играть! Сейчас в группе {result - 1} людей и я:)\n"
-            f"Чтобы начать игру отправьте команду /startgame <количество игроков> <количество импосторов> (по умолчанию, 4 игрока и 1 импостор)",
+            f"Чтобы начать игру отправьте команду /startgame <количество игроков> (по умолчанию, 4 игрока)",
         )
 
 
@@ -89,16 +88,11 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
     else:
         args = command.args
         if not args:
-            player_num, imposter_num = 4, 1
+            player_num = 4
         else:
-            args = args.split()
-            if len(args) != 2:
-                return
-            player_num, imposter_num = map(int, args)
-        if imposter_num >= player_num:
-            return
+            player_num = int(args)
 
-        session_data = {"player_num": player_num, "imposter_num": imposter_num}
+        session_data = {"player_num": player_num}
         await state.set_state(States.WaitingForPlayers)
         head_id = message.from_user.id
         head = message.from_user.username
@@ -147,7 +141,7 @@ async def join_game(callback: CallbackQuery, state: FSMContext) -> None:
         await state.set_state(States.SendingWords)
         msg = await callback.message.bot.send_message(
             callback.message.chat.id,
-            f"Все игроки в сборе. Количество импостеров - {data['imposter_num']}. Отправляю слова и темы!",
+            f"Все игроки в сборе. Отправляю слова и темы!",
         )
         await send_words_to_players(msg, state)
 
@@ -157,9 +151,14 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
     word, theme = select_word_theme()
     data = (await state.get_data())["session_data"]
     players = data["players"]
-    imposters = get_imposters(list(players.keys()), data["imposter_num"]) # TODO: сделать рандомное количество
+    imposters = get_imposters(list(players.keys()))  # TODO: сделать рандомное количество
     order = get_random_order(list(players.keys()))
     data["imposters"] = imposters
+    if imposters is None:
+        data["imposters_num"] = 0
+    else:
+        data["imposters_num"] = len(imposters)
+    data["order"] = order
     data["order"] = order
     data["word"] = word
     data["current_player"] = 0
@@ -168,10 +167,10 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
 
     for p_id in players:
         try:
-            if p_id not in imposters:
-                await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
+            if imposters is not None and p_id in imposters:
+                    await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
             else:
-                await message.bot.send_message(p_id, f"Вы предатель!!! Тема - {theme}, удачи:)")
+                await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
         except TelegramForbiddenError:
             await message.bot.send_message(message.chat.id, f"Игрок {players[p_id]} еблан.")
 
@@ -306,6 +305,10 @@ async def finish_game(message: Message, state: FSMContext) -> None:
     players = data["players"]
     max_voted = max(votes.values())
     max_voted_ids = [i for i in votes.keys() if votes[i] == max_voted]
+    if imposters is None:
+        await message.bot.send_message(message.chat.id, "Импостеров не было, зачилльтесь!")
+        await state.set_state(None)
+        return
     if len(max_voted_ids) == 1:
         voted_id = max_voted_ids[0]
         await message.bot.send_message(
