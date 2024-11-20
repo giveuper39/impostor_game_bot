@@ -59,7 +59,8 @@ async def start(message: Message, state: FSMContext) -> None:
 
     if message.chat.type == "private":
         await message.reply(
-            f"Привет, {message.from_user.full_name}! Это наша личная переписка и сюда я буду скидывать твою роль, тему и слово!",
+            f"Привет, {message.from_user.full_name}! "
+            f"Это наша личная переписка и сюда я буду скидывать твою роль, тему и слово!",
         )
     else:
         result = await message.bot.get_chat_member_count(message.chat.id)
@@ -102,7 +103,7 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
         players[head_id] = head
         await message.reply(
             "Если вы хотите присоединиться к игре, нажмите на кнопку 'Присоединиться'. "
-            "Перед этим удостоверьтесь, что бот может написать вам в лс (для этого перейдите в диалог с ботом и нажмите 'Старт' или напишите /start)",
+            "**Перед этим удостоверьтесь, что бот может написать вам в лс (для этого перейдите в диалог с ботом и нажмите 'Старт' или напишите ему в лс /start)!**",
             reply_markup=reply_markup,
         )
         msg = await message.bot.send_message(
@@ -175,10 +176,12 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
 
     await message.bot.send_message(
         chat_id,
-        "Я отправил каждому игроку сообщение с его ролью и словом. Чтобы написать ассоциацию в свой ход введите /a 'ассоциация'. Если хотите начать голосование заранее, введите /vote",
+        "Я отправил каждому игроку сообщение с его ролью и словом (или темой). "
+        "Чтобы написать ассоциацию в свой ход введите /a 'ассоциация'. "
+        "Если хотите начать голосование заранее, введите /vote",
     )
     await message.bot.send_message(chat_id, f"Раунд: 1/{NUM_ROUNDS}.")
-    await message.bot.send_message(chat_id, f"Ассоциацию называет {players[order[0]]}.")
+    await message.bot.send_message(chat_id, f"Афссоциацию называет {players[order[0]]}.")
 
     await state.update_data(session_data=data)
     await state.set_state(States.WatchingAssoc)
