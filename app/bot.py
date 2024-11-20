@@ -186,7 +186,7 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
         "Если хотите начать голосование заранее, введите /vote",
     )
     await message.bot.send_message(chat_id, f"Раунд: 1/{NUM_ROUNDS}.")
-    await message.bot.send_message(chat_id, f"Афссоциацию называет {players[order[0]]}.")
+    await message.bot.send_message(chat_id, f"Ассоциацию называет {players[order[0]]}.")
 
     await state.update_data(session_data=data)
     await state.set_state(States.WatchingAssoc)
@@ -219,7 +219,7 @@ async def association_round(message: Message, state: FSMContext, command: Comman
             await message.bot.send_message(
                 message.chat.id,
                 f"Игра закончилась, переходим к голосованию. "
-                f"Кто же все-таки импостер? (голос импостера тоже учитывается, если импостер набрал одинаковое количество голосов с другим игроком, он побеждает",
+                f"Кто же все-таки импостер? (голос импостера тоже учитывается, если импостер набрал одинаковое количество голосов с обычным игроком, он побеждает",
             )
             await send_voting_message(message, state)
             return
