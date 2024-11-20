@@ -105,6 +105,7 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
             "Если вы хотите присоединиться к игре, нажмите на кнопку 'Присоединиться'. "
             "**Перед этим удостоверьтесь, что бот может написать вам в лс (для этого перейдите в диалог с ботом и нажмите 'Старт' или напишите ему в лс /start)!**",
             reply_markup=reply_markup,
+            parse_mode="Markdown",
         )
         msg = await message.bot.send_message(
             message.chat.id,
@@ -172,7 +173,9 @@ async def send_words_to_players(message: Message, state: FSMContext) -> None:
             else:
                 await message.bot.send_message(p_id, f"Вы получаете слово {word} (тема - {theme}) из чата {chat_name}!")
         except TelegramForbiddenError:
-            await message.bot.send_message(message.chat.id, f"Игрок {players[p_id]} еблан.")
+            await message.bot.send_message(
+                message.chat.id, f"Игрок {players[p_id]} - тут жирным текстом написано НАПИСАТЬ БОТУ В ЛС!!!."
+            )
 
     await message.bot.send_message(
         chat_id,
