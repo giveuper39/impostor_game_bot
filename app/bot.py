@@ -91,7 +91,14 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
         if not args:
             player_num = 4
         else:
-            player_num = int(args)
+            try:
+                player_num = int(args)
+                if player_num < 2:
+                    await message.reply("Введи нормальное количество игроков (2 или больше)!")
+                    return
+            except ValueError:
+                await message.reply("Введи число больше двух, а не вот это вот!")
+                return
 
         session_data = {"player_num": player_num}
         await state.set_state(States.WaitingForPlayers)
