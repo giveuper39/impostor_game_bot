@@ -87,6 +87,7 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
     if message.chat.type == "private":
         await message.reply("Нельзя начать игру в приватном чате!")
     else:
+        member_count = await message.bot.get_chat_member_count(message.chat.id) - 1
         args = command.args
         if not args:
             player_num = 4
@@ -96,6 +97,10 @@ async def start_game(message: Message, state: FSMContext, command: CommandObject
                 if player_num < 2:
                     await message.reply("Введи нормальное количество игроков (2 или больше)!")
                     return
+                if player_num > member_count:
+                    await message.reply(f"Ты с кем играть собрался? Тут возможных игроков всего {member_count}.")
+                    return
+
             except ValueError:
                 await message.reply("Введи число больше двух, а не вот это вот!")
                 return
